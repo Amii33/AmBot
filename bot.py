@@ -27,44 +27,51 @@ from io import BytesIO
 from aiogram.types import ReplyKeyboardRemove
 
 class PickleDatabase:
-    def __init__(self, filename: str = 'bot_database.pkl'):
+    def __init__(self, filename: str):
         self.filename = filename
-        self.data = self._load_data()
-    
-    def _load_data(self) -> Dict[int, Any]:
-    """Загружает данные из файла или создает новый словарь"""
-    try:
-        if os.path.exists(self.filename) and os.path.getsize(self.filename) > 0:
+        self._ensure_directory_exists()
+        self.data = self._safe_load()
+        
+    def _ensure_directory_exists(self):
+        """Создает директорию, если она не существует"""
+        os.makedirs(os.path.dirname(self.filename), exist_ok=True)
+        
+    def _safe_load(self) -> Dict[int, Any]:
+        """Безопасная загрузка данных с защитой от поврежденных файлов"""
+        if not os.path.exists(self.filename):
+            return {}
+            
+        try:
             with open(self.filename, 'rb') as f:
-                return pickle.load(f)
-        return {}  # Возвращаем пустой словарь, если файла нет или он пустой
-    except Exception as e:
-        logger.error(f"Ошибка загрузки БД: {e}")
-        return {}  # При любой ошибке возвращаем новый словарь
-    
-    def _save_data(self):
-        """Сохраняет данные в файл"""
-        with open(self.filename, 'wb') as f:
-            pickle.dump(self.data, f)
-    
-    def get_user(self, user_id: int) -> Dict[str, Any]:
-        """Получает данные пользователя"""
-        return self.data.get(user_id, {})
-    
+                # Проверяем, что файл не пустой
+                if os.path.getsize(self.filename) > 0:
+                    return pickle.load(f)
+                return {}
+        except (EOFError, pickle.UnpicklingError) as e:
+            print(f"Ошибка загрузки БД: {e}. Создаю новую БД.")
+            return {}
+            
+    def _safe_save(self):
+        """Безопасное сохранение с созданием резервной копии"""
+        try:
+            # Сначала сохраняем во временный файл
+            temp_filename = self.filename + '.tmp'
+            with open(temp_filename, 'wb') as f:
+                pickle.dump(self.data, f)
+                
+            # Затем заменяем основной файл
+            if os.path.exists(self.filename):
+                os.replace(self.filename, self.filename + '.bak')
+            os.rename(temp_filename, self.filename)
+            
+        except Exception as e:
+            print(f"Ошибка сохранения БД: {e}")
+            raise
+            
     def update_user(self, user_id: int, user_data: Dict[str, Any]):
-        """Обновляет данные пользователя"""
+        """Обновление данных пользователя"""
         self.data[user_id] = user_data
-        self._save_data()
-    
-    def delete_user(self, user_id: int):
-        """Удаляет пользователя из базы данных"""
-        if user_id in self.data:
-            del self.data[user_id]
-            self._save_data()
-    
-    def get_all_users(self) -> Dict[int, Any]:
-        """Получает все данные"""
-        return self.data
+        self._safe_save()
 
 doc_url3 = "https://rutracker.org/forum/tracker.php?nm=capture"
 doc_url4 = "https://www.utorrent.com"
@@ -241,6 +248,9 @@ async def schedule_followup(user_id: int, lang: str):
 # База данных пользователей
 db_path = "/home/ra59622/telegram_bot/data/bot_database.pkl" # Уточните правильный путь
 db = PickleDatabase(db_path)
+if not db.data:
+    db.data = {}
+    db._safe_save()
 
 # Основной поток
 @dp.message(Command("start"))
