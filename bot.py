@@ -32,11 +32,15 @@ class PickleDatabase:
         self.data = self._load_data()
     
     def _load_data(self) -> Dict[int, Any]:
-        """Загружает данные из файла или создает новый словарь, если файла нет"""
-        if os.path.exists(self.filename):
+    """Загружает данные из файла или создает новый словарь"""
+    try:
+        if os.path.exists(self.filename) and os.path.getsize(self.filename) > 0:
             with open(self.filename, 'rb') as f:
                 return pickle.load(f)
-        return {}
+        return {}  # Возвращаем пустой словарь, если файла нет или он пустой
+    except Exception as e:
+        logger.error(f"Ошибка загрузки БД: {e}")
+        return {}  # При любой ошибке возвращаем новый словарь
     
     def _save_data(self):
         """Сохраняет данные в файл"""
