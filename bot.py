@@ -87,7 +87,7 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация бота
 API_TOKEN = '7283157723:AAE0B9T6V4pNQ7TxyKF-1q9CxwPwrsltoT8'
-ADMIN_ID = 167162909  # ID администратора
+ADMIN_ID = 429262734  # ID администратора
 
 # Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN)
