@@ -146,7 +146,7 @@ async def show_admin_panel(user_id: int, lang: str):
 
 async def send_course_offer(user_id: int, lang: str):
     """Отправляет предложение о курсе через 1 час"""
-    await asyncio.sleep(60)  # Ждем 1 час
+    await asyncio.sleep(18000)  # Ждем 1 час
     
     try:
 
@@ -242,7 +242,7 @@ If you're ready to go further — here's a sneak peek at what's included in the 
 
 async def schedule_followup(user_id: int, lang: str):
     """Планирует отправку follow-up сообщения через 1 день"""
-    await asyncio.sleep(120)  # Ждем 1 день (86400 секунд)
+    await asyncio.sleep(86400)  # Ждем 1 день (86400 секунд)
     await send_followup_message(user_id, lang)
 
 # База данных пользователей
