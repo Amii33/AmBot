@@ -624,15 +624,15 @@ async def process_post_content(message: Message, state: FSMContext):
     
     builder = ReplyKeyboardBuilder()
     if lang == 'ru':
-        builder.add(KeyboardButton(text="⏭ Пропустить"), KeyboardButton(text="❌ Отмена"))
+        builder.add(KeyboardButton(text="⏭ Далее"), KeyboardButton(text="❌ Отмена"))
     else:
-        builder.add(KeyboardButton(text="⏭ Skip"), KeyboardButton(text="❌ Cancel"))
+        builder.add(KeyboardButton(text="⏭ Next"), KeyboardButton(text="❌ Cancel"))
     builder.adjust(1)
     
     await state.set_state(Form.post_media)
     await message.answer(
-        "🖼 Отправьте медиа (фото, видео, документ) или нажмите 'Пропустить'" if lang == 'ru'
-        else "🖼 Send media (photo, video, document) or press 'Skip'",
+        "🖼 Отправьте медиа (фото, видео, документ) или нажмите 'Далее'" if lang == 'ru'
+        else "🖼 Send media (photo, video, document) or press 'Next'",
         reply_markup=builder.as_markup(resize_keyboard=True)
     )
 
@@ -657,7 +657,7 @@ async def process_media(message: Message, state: FSMContext):
         else "✅ Media added. Send more or press 'Done'"
     )
 
-@dp.message(Form.post_media, lambda message: message.text in ["✅ Готово", "✅ Done", "⏭ Пропустить", "⏭ Skip"])
+@dp.message(Form.post_media, lambda message: message.text in ["✅ Готово", "✅ Done", "⏭ Далее", "⏭ Next"])
 async def finish_media(message: Message, state: FSMContext):
     """Завершение добавления медиа"""
     lang = get_user_lang(message.from_user.id)
